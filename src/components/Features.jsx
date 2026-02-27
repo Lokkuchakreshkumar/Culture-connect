@@ -48,9 +48,9 @@ const Features = () => {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className="group hover:-translate-y-1 transition-transform duration-500"
+                            className="group"
                         >
-                            <div className="mb-6 p-4 inline-block rounded-full bg-bg-secondary group-hover:bg-bg-accent transition-colors">
+                            <div className="mb-6 p-4 inline-block bg-bg-secondary transition-colors group-hover:bg-bg-accent">
                                 {feature.icon}
                             </div>
                             <h3 className="text-xl font-serif font-medium mb-3 text-text-primary">{feature.title}</h3>

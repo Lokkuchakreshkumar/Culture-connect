@@ -22,10 +22,10 @@ const Hero = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-6">
-                        <button className="px-8 py-4 bg-text-primary text-bg-primary font-medium rounded-full hover:bg-accent-terra transition-colors duration-300">
+                        <button className="px-8 py-4 bg-text-primary text-bg-primary font-medium hover:bg-accent-terra transition-colors duration-300">
                             Start Exploring
                         </button>
-                        <button className="px-8 py-4 border border-text-primary/20 text-text-primary font-medium rounded-full hover:border-text-primary transition-colors duration-300">
+                        <button className="px-8 py-4 border border-text-primary/20 text-text-primary font-medium hover:border-text-primary transition-colors duration-300">
                             Our Mission
                         </button>
                     </div>
@@ -33,15 +33,13 @@ const Hero = () => {
 
                 {/* Hero Image */}
                 <div className="relative order-1 md:order-2 h-[50vh] md:h-[80vh] w-full flex items-center justify-center">
-                    <div className="w-full h-full overflow-hidden animate-blob shadow-2xl transition-all duration-500">
+                    <div className="w-full h-full overflow-hidden shadow-xl transition-all duration-500">
                         <img
                             src="/cultural_hero_minimalist_1770808151155.png"
                             alt="Cultural Artifacts"
-                            className="w-full h-full object-cover scale-110"
+                            className="w-full h-full object-cover"
                         />
                     </div>
-                    {/* Decorative organic shape */}
-                    <div className="absolute -bottom-20 -left-10 w-12 h-12 bg-accent-gold/20 rounded-full blur-2xl z-0 pointer-events-none animate-pulse"></div>
                 </div>
             </div>
         </section>

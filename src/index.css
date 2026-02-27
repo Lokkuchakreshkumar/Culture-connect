@@ -1,33 +1,33 @@
 @import "tailwindcss";
 
 @theme {
-    --color-bg-primary: #fdfbf7;
-    /* Warm off-white */
-    --color-bg-secondary: #f4f1ea;
-    /* Slightly darker beige */
-    --color-bg-accent: #e6e2d8;
-    /* Darker accent beige */
+    --color-bg-primary: #ffffff;
+    /* Plain White */
+    --color-bg-secondary: #f0f0f0;
+    /* Standard Grey */
+    --color-bg-accent: #e0e0e0;
+    /* Darker Grey */
 
-    --color-accent-gold: #c5a065;
-    /* Muted Gold */
-    --color-accent-terra: #b85c38;
-    /* Burnt Sienna */
-    --color-accent-teal: #2d6a4f;
-    /* Deep Teal */
-    --color-accent-purple: #5e4b35;
-    /* Earthy Brown/Purple */
-    --color-accent-blue: #4a6fa5;
-    /* Muted Blue */
+    --color-accent-gold: #ffcc00;
+    /* Harsh Yellow/Gold */
+    --color-accent-terra: #cc0000;
+    /* Standard Red */
+    --color-accent-teal: #008000;
+    /* Standard Green */
+    --color-accent-purple: #800080;
+    /* Standard Purple */
+    --color-accent-blue: #0000ff;
+    /* Standard Blue */
 
-    --color-text-primary: #1a1a1a;
-    /* Soft Charcoal */
-    --color-text-secondary: #4a4a4a;
+    --color-text-primary: #000000;
+    /* Pure Black */
+    --color-text-secondary: #333333;
     /* Dark Grey */
-    --color-text-muted: #767676;
+    --color-text-muted: #666666;
     /* Muted Grey */
 
-    --font-sans: "Inter", sans-serif;
-    --font-serif: "Playfair Display", serif;
+    --font-sans: Arial, Helvetica, sans-serif;
+    --font-serif: "Times New Roman", Times, serif;
 
     --image-gradient-main: linear-gradient(135deg, #fdfbf7 0%, #f4f1ea 100%);
 }
@@ -61,10 +61,6 @@
 }
 
 @layer utilities {
-    .glass {
-        @apply bg-white/70 backdrop-blur-md border border-black/5;
-    }
-
     .no-scrollbar::-webkit-scrollbar {
         display: none;
     }
@@ -72,23 +68,5 @@
     .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
-    }
-
-    .animate-blob {
-        animation: blob 7s ease-in-out infinite alternate;
-    }
-
-    @keyframes blob {
-        0% {
-            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-        }
-
-        50% {
-            border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
-        }
-
-        100% {
-            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-        }
     }
 }

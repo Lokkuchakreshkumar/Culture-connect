@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const username = localStorage.getItem('username');
+    const token = localStorage.getItem('token');
 
     useEffect(() => {
         const handleScroll = () => {
@@ -12,23 +17,30 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        navigate('/login');
+    };
+
     const navLinks = [
-        { name: 'Discover', href: '#discover' },
-        { name: 'Events', href: '#events' },
-        { name: 'Community', href: '#community' },
-        { name: 'About', href: '#about' },
+        { name: 'Feed', href: '/feed' },
+        { name: 'Events Board', href: '/events' },
+        { name: 'Discover', href: '/#discover' },
+        { name: 'Community', href: '/#community' },
+        { name: 'About', href: '/#about' },
     ];
 
     return (
         <nav
-            className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b border-transparent ${isScrolled ? 'bg-bg-primary/95 backdrop-blur-md py-4 border-black/5 shadow-sm' : 'bg-transparent py-6'
+            className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b border-transparent ${isScrolled ? 'bg-bg-primary py-4 border-black/5 shadow-sm' : 'bg-transparent py-6'
                 }`}
         >
             <div className="container mx-auto px-6 flex items-center justify-between">
                 {/* Logo */}
-                <a href="/" className="text-2xl font-serif font-bold text-text-primary tracking-tight">
+                <Link to="/" className="text-2xl font-serif font-bold text-text-primary tracking-tight">
                     Culture<span className="font-light italic text-accent-terra">Connect</span>
-                </a>
+                </Link>
 
                 {/* Desktop Links */}
                 <div className="hidden md:flex items-center gap-10">
@@ -43,11 +55,25 @@ const Navbar = () => {
                     ))}
                 </div>
 
-                {/* CTA Button */}
-                <div className="hidden md:block">
-                    <button className="px-6 py-2 bg-text-primary text-bg-primary text-sm font-medium rounded-full hover:bg-accent-terra transition-colors duration-300">
-                        Join Now
-                    </button>
+                {/* Auth Buttons */}
+                <div className="hidden md:flex items-center gap-4">
+                    {token ? (
+                        <>
+                            <span className="text-sm font-bold text-accent-teal">Hi, {username}</span>
+                            <button onClick={handleLogout} className="px-6 py-2 border border-text-primary text-text-primary text-sm font-medium hover:bg-bg-secondary transition-colors duration-300">
+                                Logout
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login" className="px-6 py-2 border border-text-primary text-text-primary text-sm font-medium hover:bg-bg-secondary transition-colors duration-300">
+                                Login
+                            </Link>
+                            <Link to="/signup" className="px-6 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:bg-accent-terra transition-colors duration-300">
+                                Sign Up
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -79,9 +105,20 @@ const Navbar = () => {
                             {link.name}
                         </a>
                     ))}
-                    <button className="w-full py-3 bg-text-primary text-bg-primary font-medium rounded-lg">
-                        Join the Journey
-                    </button>
+                    {token ? (
+                        <button onClick={handleLogout} className="w-full py-3 border border-text-primary text-text-primary font-medium">
+                            Logout
+                        </button>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <Link to="/login" className="w-full text-center py-3 border border-text-primary text-text-primary font-medium">
+                                Login
+                            </Link>
+                            <Link to="/signup" className="w-full text-center py-3 bg-text-primary text-bg-primary font-medium">
+                                Sign Up
+                            </Link>
+                        </div>
+                    )}
                 </div>
             )}
         </nav>

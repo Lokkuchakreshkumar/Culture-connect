@@ -46,16 +46,16 @@ const CulturalShowcase = () => {
                 {cultures.map((item, index) => (
                     <div
                         key={index}
-                        className="flex-shrink-0 w-72 md:w-80 h-[450px] relative group snap-center cursor-pointer rounded-lg overflow-hidden"
+                        className="flex-shrink-0 w-72 md:w-80 h-[450px] relative group snap-center cursor-pointer overflow-hidden"
                     >
                         <img
                             src={item.image}
                             alt={item.name}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale-[20%] group-hover:grayscale-0"
+                            className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
 
-                        <div className="absolute bottom-0 left-0 p-6 w-full translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                        <div className="absolute bottom-0 left-0 p-6 w-full">
                             <span className="text-white/80 text-xs font-medium uppercase tracking-wider mb-2 block">{item.tag}</span>
                             <h3 className="text-2xl font-serif font-medium text-white">{item.name}</h3>
                         </div>

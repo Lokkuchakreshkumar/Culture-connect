@@ -34,10 +34,8 @@ const Community = () => {
                     {testimonials.map((item, index) => (
                         <div
                             key={index}
-                            className="bg-bg-secondary p-8 rounded-lg border border-transparent hover:border-black/5 transition-colors duration-300 relative group"
+                            className="bg-bg-secondary p-8 border border-transparent hover:border-black/5 transition-colors duration-300 relative group"
                         >
-                            <div className="text-4xl text-accent-gold/20 font-serif absolute top-6 right-6">"</div>
-
                             <p className="text-text-secondary leading-relaxed mb-8 font-light relative z-10">
                                 {item.text}
                             </p>
