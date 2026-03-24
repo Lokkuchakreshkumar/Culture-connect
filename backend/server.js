@@ -6,10 +6,14 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = 5000;
-const JWT_SECRET = 'super_secret_culture_jwt_key_123'; // Hardcoded for local dev
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_culture_jwt_key_123';
 
 app.use(cors());
 app.use(express.json());
@@ -107,6 +111,40 @@ function authenticateToken(req, res, next) {
         next();
     });
 }
+
+function authenticateAdmin(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ error: 'Access denied' });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Invalid token' });
+        if (user.role !== 'admin') {
+            return res.status(403).json({ error: 'Requires admin privileges' });
+        }
+        req.user = user;
+        next();
+    });
+}
+
+// Admin Login Route
+app.post('/api/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    // Check against environment variables
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        // Sign token with admin role
+        const token = jwt.sign(
+            { id: 'admin', username: 'ADMIN', role: 'admin' }, 
+            JWT_SECRET, 
+            { expiresIn: '8h' }
+        );
+        res.json({ message: 'Admin login successful', token, username: 'ADMIN', role: 'admin' });
+    } else {
+        res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+});
 
 // Signup Route
 app.post('/api/auth/signup', async (req, res) => {
@@ -306,6 +344,105 @@ app.post('/api/events', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Failed to create event' });
+    }
+});
+
+// --- ADMIN DELETION ENDPOINTS ---
+
+// Delete Post
+app.delete('/api/admin/posts/:id', authenticateAdmin, async (req, res) => {
+    const postId = req.params.id;
+    try {
+        // Find post to get image_url
+        const post = await db.get('SELECT * FROM posts WHERE id = ?', [postId]);
+        if (!post) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        // Delete image file if it exists
+        if (post.image_url) {
+            // Remove the leading slash if present matching the public directory
+            const imagePath = path.join(process.cwd(), post.image_url.replace(/^\//, ''));
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath);
+            }
+        }
+
+        // Delete associated records
+        await db.run('DELETE FROM likes WHERE post_id = ?', [postId]);
+        await db.run('DELETE FROM comments WHERE post_id = ?', [postId]);
+        await db.run('DELETE FROM posts WHERE id = ?', [postId]);
+
+        res.json({ message: 'Post and associated data deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete post' });
+    }
+});
+
+// Delete User
+app.delete('/api/admin/users/:id', authenticateAdmin, async (req, res) => {
+    const userId = req.params.id;
+    try {
+        const user = await db.get('SELECT * FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Find all posts from user to delete images
+        const userPosts = await db.all('SELECT * FROM posts WHERE user_id = ?', [userId]);
+        for (const post of userPosts) {
+            if (post.image_url) {
+                const imagePath = path.join(process.cwd(), post.image_url.replace(/^\//, ''));
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
+            }
+        }
+
+        // Delete all associated records
+        await db.run('DELETE FROM likes WHERE user_id = ?', [userId]);
+        await db.run('DELETE FROM comments WHERE user_id = ?', [userId]);
+        await db.run('DELETE FROM events WHERE user_id = ?', [userId]);
+        await db.run('DELETE FROM posts WHERE user_id = ?', [userId]);
+        
+        // Delete user
+        await db.run('DELETE FROM users WHERE id = ?', [userId]);
+
+        res.json({ message: 'User and all associated data deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
+
+// Delete Comment
+app.delete('/api/admin/comments/:id', authenticateAdmin, async (req, res) => {
+    const commentId = req.params.id;
+    try {
+        const result = await db.run('DELETE FROM comments WHERE id = ?', [commentId]);
+        if (result.changes === 0) {
+            return res.status(404).json({ error: 'Comment not found' });
+        }
+        res.json({ message: 'Comment deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete comment' });
+    }
+});
+
+// Delete Event
+app.delete('/api/admin/events/:id', authenticateAdmin, async (req, res) => {
+    const eventId = req.params.id;
+    try {
+        const result = await db.run('DELETE FROM events WHERE id = ?', [eventId]);
+        if (result.changes === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+        res.json({ message: 'Event deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete event' });
     }
 });
 

@@ -9,6 +9,7 @@ const Profile = () => {
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
     const [visibleComments, setVisibleComments] = useState({});
     const [commentInputs, setCommentInputs] = useState({});
 
@@ -78,6 +79,58 @@ const Profile = () => {
         }
     };
 
+    const handleDeletePost = async (postId) => {
+        if (!window.confirm("Are you sure you want to delete this post?")) return;
+        try {
+            const res = await fetch(`http://localhost:5000/api/admin/posts/${postId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchProfile();
+            } else {
+                alert("Failed to delete post");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleDeleteComment = async (commentId, postId) => {
+        if (!window.confirm("Are you sure you want to delete this comment?")) return;
+        try {
+            const res = await fetch(`http://localhost:5000/api/admin/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchComments(postId);
+                fetchProfile();
+            } else {
+                alert("Failed to delete comment");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleDeleteUser = async () => {
+        if (!window.confirm("Are you sure you want to DELETE THIS USER and ALL their data?")) return;
+        try {
+            const res = await fetch(`http://localhost:5000/api/admin/users/${profileUser.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                navigate('/');
+            } else {
+                alert("Failed to delete user");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     if (error) {
         return <div className="container mx-auto px-6 py-24 text-center">
             <h1 className="text-3xl font-bold mb-4">Error</h1>
@@ -91,7 +144,12 @@ const Profile = () => {
 
     return (
         <div className="container mx-auto px-6 py-24 max-w-3xl">
-            <div className="mb-12 p-8 border border-black/20 bg-bg-secondary text-center">
+            <div className="mb-12 p-8 border border-black/20 bg-bg-secondary text-center relative">
+                {role === 'admin' && (
+                    <button onClick={handleDeleteUser} className="absolute top-4 right-4 bg-accent-terra text-white font-bold text-xs px-3 py-1 hover:bg-red-700">
+                        Delete User
+                    </button>
+                )}
                 <div className="w-24 h-24 mx-auto bg-text-primary text-bg-primary flex items-center justify-center text-4xl font-bold mb-4">
                     {profileUser.username[0].toUpperCase()}
                 </div>
@@ -105,6 +163,13 @@ const Profile = () => {
                 ) : (
                     posts.map(post => (
                         <div key={post.id} className="border border-black/10 bg-bg-primary shadow-sm">
+                            {role === 'admin' && (
+                                <div className="p-2 border-b border-black/10 bg-bg-secondary flex justify-end">
+                                    <button onClick={() => handleDeletePost(post.id)} className="text-xs font-bold text-accent-terra border border-accent-terra px-2 py-1 hover:bg-accent-terra hover:text-white transition-colors">
+                                        Delete Post
+                                    </button>
+                                </div>
+                            )}
                             <img
                                 src={`http://localhost:5000${post.image_url}`}
                                 alt={post.description}
@@ -140,9 +205,16 @@ const Profile = () => {
                                                 <p className="text-sm text-text-muted italic">No comments yet.</p>
                                             ) : (
                                                 visibleComments[post.id].map(c => (
-                                                    <div key={c.id} className="text-sm border-l-2 border-accent-blue pl-3">
-                                                        <span className="font-bold">{c.username}: </span>
-                                                        <span>{c.text}</span>
+                                                    <div key={c.id} className="text-sm border-l-2 border-accent-blue pl-3 flex justify-between items-start">
+                                                        <div>
+                                                            <span className="font-bold">{c.username}: </span>
+                                                            <span>{c.text}</span>
+                                                        </div>
+                                                        {role === 'admin' && (
+                                                            <button onClick={() => handleDeleteComment(c.id, post.id)} className="text-accent-terra text-xs font-bold ml-2">
+                                                                [X]
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 ))
                                             )}

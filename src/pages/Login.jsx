@@ -10,7 +10,8 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch('http://localhost:5000/api/auth/login', {
+            const endpoint = username === 'ADMIN' ? 'http://localhost:5000/api/admin/login' : 'http://localhost:5000/api/auth/login';
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -19,6 +20,11 @@ const Login = () => {
             if (res.ok) {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('username', data.username);
+                if (data.role) {
+                    localStorage.setItem('role', data.role);
+                } else {
+                    localStorage.removeItem('role');
+                }
                 navigate('/');
             } else {
                 setError(data.error);

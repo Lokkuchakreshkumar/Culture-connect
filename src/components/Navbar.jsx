@@ -26,6 +26,8 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Feed', href: '/feed' },
         { name: 'Events Board', href: '/events' },
+        { name: 'Translate', href: '/translate' },
+        { name: 'Cultural Dances', href: '/dances' },
         { name: 'Discover', href: '/#discover' },
         { name: 'Community', href: '/#community' },
         { name: 'About', href: '/#about' },

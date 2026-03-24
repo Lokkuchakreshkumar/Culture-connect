@@ -13,6 +13,7 @@ const Feed = () => {
 
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
+    const role = localStorage.getItem('role');
 
     useEffect(() => {
         fetchPosts();
@@ -80,6 +81,41 @@ const Feed = () => {
             }
         } catch (err) {
             console.error('Failed to post comment');
+        }
+    };
+
+    const handleDeletePost = async (postId) => {
+        if (!window.confirm("Are you sure you want to delete this post?")) return;
+        try {
+            const res = await fetch(`http://localhost:5000/api/admin/posts/${postId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchPosts();
+            } else {
+                alert("Failed to delete post");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleDeleteComment = async (commentId, postId) => {
+        if (!window.confirm("Are you sure you want to delete this comment?")) return;
+        try {
+            const res = await fetch(`http://localhost:5000/api/admin/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchComments(postId);
+                fetchPosts();
+            } else {
+                alert("Failed to delete comment");
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -179,7 +215,14 @@ const Feed = () => {
                                 <Link to={`/profile/${post.username}`} className="font-bold text-lg hover:text-accent-blue hover:underline">
                                     {post.username}
                                 </Link>
-                                <span className="text-xs text-text-muted">{new Date(post.created_at).toLocaleDateString()}</span>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-xs text-text-muted">{new Date(post.created_at).toLocaleDateString()}</span>
+                                    {role === 'admin' && (
+                                        <button onClick={() => handleDeletePost(post.id)} className="text-xs font-bold text-accent-terra border border-accent-terra px-2 py-1 hover:bg-accent-terra hover:text-white transition-colors">
+                                            Delete Post
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <img
                                 src={`http://localhost:5000${post.image_url}`}
@@ -218,9 +261,16 @@ const Feed = () => {
                                                 <p className="text-sm text-text-muted italic">No comments yet.</p>
                                             ) : (
                                                 visibleComments[post.id].map(c => (
-                                                    <div key={c.id} className="text-sm border-l-2 border-accent-blue pl-3">
-                                                        <span className="font-bold">{c.username}: </span>
-                                                        <span>{c.text}</span>
+                                                    <div key={c.id} className="text-sm border-l-2 border-accent-blue pl-3 flex justify-between items-start">
+                                                        <div>
+                                                            <span className="font-bold">{c.username}: </span>
+                                                            <span>{c.text}</span>
+                                                        </div>
+                                                        {role === 'admin' && (
+                                                            <button onClick={() => handleDeleteComment(c.id, post.id)} className="text-accent-terra text-xs font-bold ml-2">
+                                                                [X]
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 ))
                                             )}

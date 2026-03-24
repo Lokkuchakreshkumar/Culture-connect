@@ -11,6 +11,7 @@ const EventsBoard = () => {
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
 
     useEffect(() => {
         fetchEvents();
@@ -23,6 +24,23 @@ const EventsBoard = () => {
             if (res.ok) setEvents(data);
         } catch (err) {
             console.error('Failed to fetch events');
+        }
+    };
+
+    const handleDeleteEvent = async (eventId) => {
+        if (!window.confirm("Are you sure you want to delete this event?")) return;
+        try {
+            const res = await fetch(`http://localhost:5000/api/admin/events/${eventId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchEvents();
+            } else {
+                alert("Failed to delete event");
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -122,8 +140,13 @@ const EventsBoard = () => {
                     ) : (
                         events.map(event => (
                             <div key={event.id} className="border border-black/10 bg-bg-primary shadow-sm flex flex-col hover:border-accent-blue transition-colors">
-                                <div className="p-4 bg-text-primary text-bg-primary font-bold text-xl">
-                                    {event.title}
+                                <div className="p-4 bg-text-primary text-bg-primary font-bold text-xl flex justify-between items-center">
+                                    <span>{event.title}</span>
+                                    {role === 'admin' && (
+                                        <button onClick={() => handleDeleteEvent(event.id)} className="text-xs bg-accent-terra text-white px-2 py-1 hover:bg-red-700 transition-colors">
+                                            Delete Event
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="p-6 flex-1 flex flex-col gap-4">
                                     <div className="flex flex-col gap-2 text-sm font-bold text-text-secondary">
