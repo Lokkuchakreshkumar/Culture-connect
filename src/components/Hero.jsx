@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
     return (
@@ -22,12 +22,12 @@ const Hero = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-6">
-                        <button className="px-8 py-4 bg-text-primary text-bg-primary font-medium hover:bg-accent-terra transition-colors duration-300">
+                        <Link to="/dances" className="px-8 py-4 bg-text-primary text-bg-primary font-medium hover:bg-accent-terra transition-colors duration-300 text-center">
                             Start Exploring
-                        </button>
-                        <button className="px-8 py-4 border border-text-primary/20 text-text-primary font-medium hover:border-text-primary transition-colors duration-300">
+                        </Link>
+                        <a href="#about" className="px-8 py-4 border border-text-primary/20 text-text-primary font-medium hover:border-text-primary transition-colors duration-300 text-center">
                             Our Mission
-                        </button>
+                        </a>
                     </div>
                 </div>
 

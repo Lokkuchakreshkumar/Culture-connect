@@ -1,12 +1,14 @@
+import { Link } from 'react-router-dom';
+
 const Footer = () => {
     return (
         <footer className="bg-bg-accent py-20 border-t border-black/5 text-text-primary">
             <div className="container mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     <div className="col-span-1 md:col-span-2">
-                        <a href="/" className="text-2xl font-serif font-bold text-text-primary tracking-tight mb-6 block">
+                        <Link to="/" className="text-2xl font-serif font-bold text-text-primary tracking-tight mb-6 block">
                             Culture<span className="font-light italic text-accent-terra">Connect</span>
-                        </a>
+                        </Link>
                         <p className="text-text-secondary max-w-sm mb-8 font-light leading-relaxed">
                             Connect deeply with cultures, languages, and people. A platform for authentic global understanding.
                         </p>
@@ -15,18 +17,18 @@ const Footer = () => {
                     <div>
                         <h4 className="text-sm font-bold uppercase tracking-widest mb-6 text-text-primary opacity-60">Platform</h4>
                         <ul className="space-y-4 text-text-secondary font-light text-sm">
-                            <li><a href="#" className="hover:text-accent-terra transition-colors">Explore</a></li>
-                            <li><a href="#" className="hover:text-accent-terra transition-colors">Communities</a></li>
-                            <li><a href="#" className="hover:text-accent-terra transition-colors">Events</a></li>
-                            <li><a href="#" className="hover:text-accent-terra transition-colors">Language Exchange</a></li>
+                            <li><Link to="/dances" className="hover:text-accent-terra transition-colors">Explore</Link></li>
+                            <li><Link to="/feed" className="hover:text-accent-terra transition-colors">Communities</Link></li>
+                            <li><Link to="/events" className="hover:text-accent-terra transition-colors">Events</Link></li>
+                            <li><Link to="/translate" className="hover:text-accent-terra transition-colors">Language Exchange</Link></li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 className="text-sm font-bold uppercase tracking-widest mb-6 text-text-primary opacity-60">Company</h4>
                         <ul className="space-y-4 text-text-secondary font-light text-sm">
-                            <li><a href="#" className="hover:text-accent-terra transition-colors">About Us</a></li>
-                            <li><a href="#" className="hover:text-accent-terra transition-colors">Mission</a></li>
+                            <li><a href="#about" className="hover:text-accent-terra transition-colors">About Us</a></li>
+                            <li><a href="#about" className="hover:text-accent-terra transition-colors">Mission</a></li>
                             <li><a href="#" className="hover:text-accent-terra transition-colors">Blog</a></li>
                             <li><a href="#" className="hover:text-accent-terra transition-colors">Contact</a></li>
                         </ul>

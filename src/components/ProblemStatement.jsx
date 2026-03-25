@@ -31,7 +31,7 @@ const ProblemStatement = () => {
                             In a hyper-connected world, we are paradoxically losing the authentic threads that bind us to our past and to each other.
                         </p>
 
-                        <div className="p-8 bg-white border border-black/5 shadow-sm relative overflow-hidden">
+                        <div id="about" className="p-8 bg-white border border-black/5 shadow-sm relative overflow-hidden">
                             <h3 className="text-xl font-serif font-medium mb-4 text-text-primary">Our Mission</h3>
                             <p className="text-text-secondary font-light leading-relaxed">
                                 To build a unified platform that connects people based on cultural interests, fostering authentic, respectful, and educational interactions while preserving global heritage.

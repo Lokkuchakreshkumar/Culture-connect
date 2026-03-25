@@ -47,13 +47,23 @@ const Navbar = () => {
                 {/* Desktop Links */}
                 <div className="hidden md:flex items-center gap-10">
                     {navLinks.map((link) => (
-                        <a
-                            key={link.name}
-                            href={link.href}
-                            className="text-text-secondary hover:text-text-primary transition-colors text-sm font-medium tracking-wide uppercase"
-                        >
-                            {link.name}
-                        </a>
+                        link.href.startsWith('/#') ? (
+                            <a
+                                key={link.name}
+                                href={link.href}
+                                className="text-text-secondary hover:text-text-primary transition-colors text-sm font-medium tracking-wide uppercase"
+                            >
+                                {link.name}
+                            </a>
+                        ) : (
+                            <Link
+                                key={link.name}
+                                to={link.href}
+                                className="text-text-secondary hover:text-text-primary transition-colors text-sm font-medium tracking-wide uppercase"
+                            >
+                                {link.name}
+                            </Link>
+                        )
                     ))}
                 </div>
 
@@ -98,14 +108,25 @@ const Navbar = () => {
             {isMobileMenuOpen && (
                 <div className="md:hidden absolute top-full left-0 w-full bg-bg-primary border-b border-black/5 p-6 flex flex-col gap-6 animate-fade-in shadow-xl">
                     {navLinks.map((link) => (
-                        <a
-                            key={link.name}
-                            href={link.href}
-                            className="text-text-primary hover:text-accent-terra text-xl font-serif font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            {link.name}
-                        </a>
+                        link.href.startsWith('/#') ? (
+                            <a
+                                key={link.name}
+                                href={link.href}
+                                className="text-text-primary hover:text-accent-terra text-xl font-serif font-medium"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                {link.name}
+                            </a>
+                        ) : (
+                            <Link
+                                key={link.name}
+                                to={link.href}
+                                className="text-text-primary hover:text-accent-terra text-xl font-serif font-medium"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                {link.name}
+                            </Link>
+                        )
                     ))}
                     {token ? (
                         <button onClick={handleLogout} className="w-full py-3 border border-text-primary text-text-primary font-medium">

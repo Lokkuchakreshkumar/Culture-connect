@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const cultures = [
     {
         name: "Kyoto, Japan",
@@ -36,9 +38,9 @@ const CulturalShowcase = () => {
                         Cultural <span className="italic font-light text-accent-terra">Highlights</span>
                     </h2>
                 </div>
-                <button className="hidden md:flex items-center gap-2 text-text-primary hover:text-accent-terra transition-colors font-medium text-sm border-b border-transparent hover:border-accent-terra pb-0.5">
+                <Link to="/dances" className="hidden md:flex items-center gap-2 text-text-primary hover:text-accent-terra transition-colors font-medium text-sm border-b border-transparent hover:border-accent-terra pb-0.5">
                     View All Destinations
-                </button>
+                </Link>
             </div>
 
             {/* Scroll Container with Hidden Scrollbar */}
