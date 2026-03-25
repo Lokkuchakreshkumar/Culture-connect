@@ -53,12 +53,12 @@ for (const file of files) {
 }
 
 async function downloadImage(name, id) {
-  const url = `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&q=80&w=1000`;
+  const url = `https://unsplash.com/photos/${id}/download?w=1000`;
   const filePath = path.join(targetDir, `${name}.jpg`);
   
   console.log(`Downloading ${name} (${id})...`);
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { redirect: 'follow' });
     if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
     const buffer = Buffer.from(await response.arrayBuffer());
     fs.writeFileSync(filePath, buffer);
