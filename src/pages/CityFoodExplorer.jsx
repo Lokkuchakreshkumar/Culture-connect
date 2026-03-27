@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const cityFoodData = [
   // ── Andhra Pradesh (all major cities) ──────────────────────────────────────
@@ -261,6 +261,66 @@ const cityFoodData = [
 
 const allStates = ['All States', ...new Set(cityFoodData.map(c => c.state))].sort((a, b) => a === 'All States' ? -1 : a.localeCompare(b));
 
+// ── City Coordinates (lat, lng) ───────────────────────────────────────────────
+const cityCoords = {
+  'Visakhapatnam': [17.6868, 83.2185], 'Vijayawada': [16.5062, 80.6480],
+  'Guntur': [16.3008, 80.4428], 'Tirupati': [13.6288, 79.4192],
+  'Kakinada': [16.9891, 82.2475], 'Rajahmundry': [17.0005, 81.8040],
+  'Nellore': [14.4426, 79.9865], 'Kurnool': [15.8281, 78.0373],
+  'Kadapa': [14.4673, 78.8242], 'Anantapur': [14.6819, 77.6006],
+  'Eluru': [16.7107, 81.0952], 'Ongole': [15.5057, 80.0499],
+  'Chittoor': [13.2172, 79.1003], 'Srikakulam': [18.2949, 83.8938],
+  'Vizianagaram': [18.1066, 83.3956], 'Machilipatnam': [16.1875, 81.1389],
+  'Proddatur': [14.7502, 78.5483], 'Nandyal': [15.4786, 78.4836],
+  'Hyderabad': [17.3850, 78.4867], 'Warangal': [17.9784, 79.5941],
+  'Chennai': [13.0827, 80.2707], 'Madurai': [9.9252, 78.1198],
+  'Coimbatore': [11.0168, 76.9558], 'Bengaluru': [12.9716, 77.5946],
+  'Mysuru': [12.2958, 76.6394], 'Mangaluru': [12.9141, 74.8560],
+  'Kochi': [9.9312, 76.2673], 'Kozhikode': [11.2588, 75.7804],
+  'Mumbai': [19.0760, 72.8777], 'Pune': [18.5204, 73.8567],
+  'Kolhapur': [16.7050, 74.2433], 'Nagpur': [21.1458, 79.0882],
+  'Ahmedabad': [23.0225, 72.5714], 'Surat': [21.1702, 72.8311],
+  'Jaipur': [26.9124, 75.7873], 'Jodhpur': [26.2389, 73.0243],
+  'Udaipur': [24.5854, 73.7125], 'Jaisalmer': [26.9157, 70.9083],
+  'Lucknow': [26.8467, 80.9462], 'Varanasi': [25.3176, 82.9739],
+  'Agra': [27.1767, 78.0081], 'Amritsar': [31.6340, 74.8723],
+  'Kolkata': [22.5726, 88.3639], 'Darjeeling': [27.0360, 88.2627],
+  'New Delhi': [28.6139, 77.2090], 'Patna': [25.5941, 85.1376],
+  'Indore': [22.7196, 75.8577], 'Bhopal': [23.2599, 77.4126],
+  'Bhubaneswar': [20.2961, 85.8245], 'Panaji': [15.4909, 73.8278],
+  'Srinagar': [34.0837, 74.7973], 'Guwahati': [26.1445, 91.7362],
+  'Shimla': [31.1048, 77.1734], 'Dehradun': [30.3165, 78.0322],
+  'Gangtok': [27.3389, 88.6065], 'Shillong': [25.5788, 91.8933],
+  'Kohima': [25.6751, 94.1086], 'Imphal': [24.8170, 93.9368],
+  'Leh': [34.1526, 77.5771], 'Puducherry': [11.9416, 79.8083],
+  'Itanagar': [27.0844, 93.6053], 'Ranchi': [23.3441, 85.3096],
+  'Raipur': [21.2514, 81.6296], 'Port Blair': [11.6234, 92.7265],
+  'Agartala': [23.8315, 91.2868],
+};
+
+// ── Haversine distance (km) ───────────────────────────────────────────────────
+const haversineKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+// ── Find nearest city within threshold km ────────────────────────────────────
+const THRESHOLD_KM = 50;
+const findNearestCity = (lat, lon) => {
+  let best = null, bestDist = Infinity;
+  cityFoodData.forEach(city => {
+    const coords = cityCoords[city.city];
+    if (!coords) return;
+    const d = haversineKm(lat, lon, coords[0], coords[1]);
+    if (d < bestDist) { bestDist = d; best = city; }
+  });
+  return bestDist <= THRESHOLD_KM ? best : null;
+};
+
 // ── Notification Toast ────────────────────────────────────────────────────────
 const FoodNotification = ({ notif, onClose }) => {
   useEffect(() => {
@@ -366,13 +426,114 @@ const DetailPanel = ({ city, onNotify }) => {
   );
 };
 
+// ── Auto-Detection Status Banner ──────────────────────────────────────────────
+const GeoStatusBanner = ({ status, nearestCity, onEnable, onDisable }) => {
+  const configs = {
+    idle:     { bg: '#f8fafc', border: '#e2e8f0', icon: '📡', text: 'Enable auto-detection to get notified when you arrive in any listed city.', textColor: '#64748b', btnText: '🛰️ Enable Auto-Detect', btnColor: '#6366f1', showBtn: true,  showDisable: false },
+    asking:   { bg: '#eff6ff', border: '#bfdbfe', icon: '⏳', text: 'Requesting location permission…', textColor: '#3b82f6', btnText: null, showBtn: false, showDisable: false },
+    watching: { bg: '#f0fdf4', border: '#86efac', icon: '🟢', text: nearestCity ? `You are near ${nearestCity}! Notification sent.` : 'Watching your location — you will be notified on city arrival.', textColor: '#16a34a', btnText: null, showBtn: false, showDisable: true },
+    denied:   { bg: '#fff7ed', border: '#fed7aa', icon: '🔒', text: 'Location access denied. Please allow location in browser settings, then try again.', textColor: '#ea580c', btnText: '🔄 Try Again', btnColor: '#ea580c', showBtn: true,  showDisable: false },
+    unsupported: { bg: '#fdf4ff', border: '#e9d5ff', icon: '❌', text: 'Geolocation is not supported by your browser.', textColor: '#9333ea', btnText: null, showBtn: false, showDisable: false },
+  };
+  const c = configs[status] || configs.idle;
+  return (
+    <div style={{ background: c.bg, border: `1.5px solid ${c.border}`, borderRadius: 14, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 22 }}>{c.icon}</span>
+      <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: c.textColor }}>{c.text}</span>
+      {c.showBtn && (
+        <button onClick={onEnable} style={{ background: c.btnColor, color: '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          {c.btnText}
+        </button>
+      )}
+      {c.showDisable && (
+        <button onClick={onDisable} style={{ background: '#fff', color: '#64748b', border: '1.5px solid #cbd5e1', borderRadius: 10, padding: '7px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+          ⏹ Stop
+        </button>
+      )}
+    </div>
+  );
+};
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const CityFoodExplorer = () => {
-  const [search, setSearch]           = useState('');
-  const [selState, setSelState]       = useState('All States');
+  const [search, setSearch]             = useState('');
+  const [selState, setSelState]         = useState('All States');
   const [selectedCity, setSelectedCity] = useState(null);
-  const [notif, setNotif]             = useState(null);
-  const [notifKey, setNotifKey]       = useState(0);
+  const [notif, setNotif]               = useState(null);
+  const [notifKey, setNotifKey]         = useState(0);
+
+  // ── Geolocation state ──────────────────────────────────────────────────────
+  const [geoStatus, setGeoStatus]       = useState('idle'); // idle | asking | watching | denied | unsupported
+  const [nearestDetected, setNearest]   = useState(null);
+  const watchIdRef                      = useRef(null);
+  const lastNotifiedRef                 = useRef(null);
+
+  const fireNotif = useCallback((city) => {
+    setNotif(city);
+    setNotifKey(k => k + 1);
+  }, []);
+
+  const handleNotify = (city) => fireNotif(city);
+
+  // Called on each GPS position update
+  const onPosition = useCallback((pos) => {
+    const { latitude: lat, longitude: lon } = pos.coords;
+    const city = findNearestCity(lat, lon);
+    if (city) {
+      setNearest(city.city);
+      // Only fire if it's a new city (avoid repeat spam)
+      if (lastNotifiedRef.current !== city.id) {
+        lastNotifiedRef.current = city.id;
+        fireNotif(city);
+        // Also show browser push notification if permission granted
+        if (Notification && Notification.permission === 'granted') {
+          new Notification(`🍽️ You arrived in ${city.city}!`, {
+            body: `Try: ${city.foods.slice(0, 3).join(', ')}`,
+            icon: '/favicon.ico',
+          });
+        }
+      }
+    } else {
+      setNearest(null);
+    }
+    setGeoStatus('watching');
+  }, [fireNotif]);
+
+  const onGeoError = useCallback((err) => {
+    if (err.code === 1) setGeoStatus('denied');
+    else setGeoStatus('idle');
+  }, []);
+
+  const enableAutoDetect = useCallback(() => {
+    if (!navigator.geolocation) { setGeoStatus('unsupported'); return; }
+    setGeoStatus('asking');
+    setNearest(null);
+    lastNotifiedRef.current = null;
+    // Request push notification permission too (best-effort)
+    if (Notification && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
+    // Start continuous GPS watch (updates every 30 s via maximumAge)
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      onPosition,
+      onGeoError,
+      { enableHighAccuracy: true, maximumAge: 30000, timeout: 20000 }
+    );
+  }, [onPosition, onGeoError]);
+
+  const disableAutoDetect = useCallback(() => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setGeoStatus('idle');
+    setNearest(null);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => () => {
+    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+  }, []);
 
   const filtered = cityFoodData.filter(c => {
     const q = search.toLowerCase();
@@ -381,10 +542,8 @@ const CityFoodExplorer = () => {
     return matchQ && matchS;
   });
 
-  const handleNotify = (city) => { setNotif(city); setNotifKey(k => k + 1); };
-
   return (
-    <div className="min-h-screen bg-bg-primary pt-20 pb-16">
+    <div className="min-h-screen pt-20 pb-16" style={{ background: 'linear-gradient(135deg, #fffdf2 0%, #fff0e5 50%, #ffece6 100%)' }}>
       {/* Header */}
       <div className="container mx-auto max-w-7xl px-6">
         <div className="text-center py-12 mb-8">
@@ -393,7 +552,7 @@ const CityFoodExplorer = () => {
             Discover India's <span className="text-accent-terra">City Flavors</span>
           </h1>
           <p className="text-text-muted text-lg max-w-xl mx-auto">
-            Traveling to a new city? Find its iconic local dishes and simulate the food notification you'd get on arrival — from Andhra Pradesh to Ladakh.
+            Traveling to a new city? Enable auto-detection and get notified automatically when you arrive — from Andhra Pradesh to Ladakh.
           </p>
           <div className="flex justify-center gap-12 mt-8">
             {[['65+','Cities'],['28+','States & UTs'],['350+','Dishes']].map(([n, l]) => (
@@ -404,6 +563,14 @@ const CityFoodExplorer = () => {
             ))}
           </div>
         </div>
+
+        {/* Auto-Detection Banner */}
+        <GeoStatusBanner
+          status={geoStatus}
+          nearestCity={nearestDetected}
+          onEnable={enableAutoDetect}
+          onDisable={disableAutoDetect}
+        />
 
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-3 mb-6 p-5 bg-bg-secondary rounded-2xl border border-black/5">
@@ -444,7 +611,13 @@ const CityFoodExplorer = () => {
             {!selectedCity && (
               <div className="mt-4 bg-bg-secondary rounded-2xl border border-black/5 p-5">
                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">How it works</p>
-                {[['🗺️','Browse 65+ cities across India'],['🍽️','Discover authentic local dishes'],['🔔','Click "Simulate Arrival" for a notification'],['🌶️','Never miss a local specialty again!']].map(([ic, tx]) => (
+                {[
+                  ['🛰️','Enable "Auto-Detect" to use your real GPS'],
+                  ['📍','App watches your location every 30 seconds'],
+                  ['🔔','Get notified automatically on city arrival'],
+                  ['🍽️','Or click "Simulate Arrival" to test manually'],
+                  ['🌶️','Never miss a local specialty again!'],
+                ].map(([ic, tx]) => (
                   <div key={tx} className="flex items-center gap-3 mb-2.5">
                     <span className="text-lg w-7 text-center">{ic}</span>
                     <span className="text-sm text-text-secondary">{tx}</span>

@@ -163,12 +163,13 @@ const Feed = () => {
     };
 
     return (
-        <div className="container mx-auto px-6 py-24 max-w-3xl">
+        <div className="min-h-screen pt-24 pb-12" style={{ background: 'linear-gradient(135deg, #fffafa 0%, #f4e9e9 100%)' }}>
+        <div className="container mx-auto px-6 max-w-3xl">
             <h1 className="text-4xl font-serif font-bold text-text-primary mb-8 border-b-2 border-black pb-4">Cultural Feed</h1>
 
             {/* Create Post Section */}
             {token ? (
-                <div className="mb-12 p-6 border border-black/20 bg-bg-secondary">
+                <div className="mb-12 p-6 border border-black/20 rounded-xl" style={{ background: '#fdf8f3' }}>
                     <h2 className="text-2xl font-serif font-bold mb-4">Share Your Culture</h2>
                     {error && <p className="text-accent-terra font-bold mb-4">{error}</p>}
 
@@ -199,7 +200,7 @@ const Feed = () => {
                     </form>
                 </div>
             ) : (
-                <div className="mb-12 p-6 border border-black/20 bg-bg-accent text-center">
+                <div className="mb-12 p-6 border border-black/20 rounded-xl text-center" style={{ background: '#fdf8f3' }}>
                     <p className="font-bold text-lg">Log in to share your own cultural moment.</p>
                 </div>
             )}
@@ -210,8 +211,8 @@ const Feed = () => {
                     <p className="text-center text-text-secondary italic">No posts yet. Be the first to share!</p>
                 ) : (
                     posts.map(post => (
-                        <div key={post.id} className="border border-black/10 bg-bg-primary shadow-sm">
-                            <div className="p-4 border-b border-black/10 bg-bg-secondary flex justify-between items-center">
+                        <div key={post.id} className="border border-black/10 shadow-sm rounded-xl overflow-hidden" style={{ background: '#fdf8f3' }}>
+                            <div className="p-4 border-b border-black/10 flex justify-between items-center" style={{ background: '#f9efe5' }}>
                                 <Link to={`/profile/${post.username}`} className="font-bold text-lg hover:text-accent-blue hover:underline">
                                     {post.username}
                                 </Link>
@@ -225,7 +226,7 @@ const Feed = () => {
                                 </div>
                             </div>
                             <img
-                                src={`http://localhost:5000${post.image_url}`}
+                                src={post.image_url && post.image_url.startsWith('http') ? post.image_url : `http://localhost:5000${post.image_url}`}
                                 alt={post.description}
                                 className="w-full h-auto object-cover max-h-[600px] border-b border-black/10"
                             />
@@ -255,7 +256,7 @@ const Feed = () => {
 
                                 {/* Comments Section */}
                                 {visibleComments[post.id] && (
-                                    <div className="mt-6 border-t border-black/10 pt-4 bg-bg-secondary p-4">
+                                    <div className="mt-6 border-t border-black/10 pt-4 p-4 rounded-lg" style={{ background: '#f9efe5' }}>
                                         <div className="flex flex-col gap-3 mb-4 max-h-48 overflow-y-auto">
                                             {visibleComments[post.id].length === 0 ? (
                                                 <p className="text-sm text-text-muted italic">No comments yet.</p>
@@ -296,6 +297,7 @@ const Feed = () => {
                     ))
                 )}
             </div>
+        </div>
         </div>
     );
 };

@@ -9,10 +9,37 @@ const Translator = () => {
     const recognitionRef = useRef(null);
 
     const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+    const [speechRate, setSpeechRate] = useState(1);
+    const [phrasebook, setPhrasebook] = useState([]);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('culturePhrasebook');
+        if (saved) setPhrasebook(JSON.parse(saved));
+    }, []);
+
+    const savePhrase = () => {
+        if (!transcript.trim() || !translatedText.trim()) return;
+        const newPhrase = {
+            id: Date.now(),
+            original: transcript.trim(),
+            translated: translatedText.trim(),
+            lang: targetLangRef.current
+        };
+        const updated = [newPhrase, ...phrasebook];
+        setPhrasebook(updated);
+        localStorage.setItem('culturePhrasebook', JSON.stringify(updated));
+    };
+
+    const deletePhrase = (id) => {
+        const updated = phrasebook.filter(p => p.id !== id);
+        setPhrasebook(updated);
+        localStorage.setItem('culturePhrasebook', JSON.stringify(updated));
+    };
 
     const sourceLangRef = useRef(sourceLang);
     const targetLangRef = useRef(targetLang);
     const isVoiceEnabledRef = useRef(isVoiceEnabled);
+    const speechRateRef = useRef(speechRate);
 
     useEffect(() => {
         sourceLangRef.current = sourceLang;
@@ -25,6 +52,10 @@ const Translator = () => {
     useEffect(() => {
         isVoiceEnabledRef.current = isVoiceEnabled;
     }, [isVoiceEnabled]);
+
+    useEffect(() => {
+        speechRateRef.current = speechRate;
+    }, [speechRate]);
 
     const languages = [
         { code: 'en', ttsCode: 'en-US', name: 'English' },
@@ -150,6 +181,7 @@ const Translator = () => {
             // client=gtx is much more stable and widely supported for all languages
             const audioUrl = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(safeText)}&tl=${ttsLang}&client=gtx`;
             const audio = new window.Audio(audioUrl);
+            audio.playbackRate = speechRateRef.current;
             const playPromise = audio.play();
 
             if (playPromise !== undefined) {
@@ -188,7 +220,7 @@ const Translator = () => {
                 utterance.voice = voice;
             }
 
-            utterance.rate = 0.95;
+            utterance.rate = speechRateRef.current * 0.95;
             window.speechSynthesis.speak(utterance);
         }
     };
@@ -226,7 +258,7 @@ const Translator = () => {
     };
 
     return (
-        <div className="min-h-screen pt-24 pb-12 px-6 bg-bg-primary">
+        <div className="min-h-screen pt-24 pb-12 px-6" style={{ background: 'linear-gradient(135deg, #fff3e0 0%, #fbe9e7 50%, #f3e5f5 100%)' }}>
             <div className="container mx-auto max-w-5xl">
                 <div className="mb-10 text-center animate-fade-in-up">
                     <h1 className="text-4xl md:text-5xl font-serif font-bold text-text-primary mb-4">
@@ -237,9 +269,9 @@ const Translator = () => {
                     </p>
                 </div>
 
-                <div className="bg-bg-primary border border-black/10 rounded-2xl p-6 md:p-10 shadow-lg transition-transform duration-300 transform hover:-translate-y-1">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-                        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <div className="border border-black/10 rounded-2xl p-6 md:p-10 shadow-lg transition-transform duration-300 transform hover:-translate-y-1" style={{ background: '#fdf8f3' }}>
+                    <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 mb-8">
+                        <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
                             <div className="flex flex-col w-full md:w-auto">
                                 <label className="text-sm font-semibold text-text-muted mb-2 uppercase tracking-wider">Source Speech</label>
                                 <select
@@ -279,9 +311,25 @@ const Translator = () => {
                             </div>
                         </div>
 
-                        <div className="flex gap-4 w-full md:w-auto mt-4 md:mt-0 items-center justify-between md:justify-end">
+                        <div className="flex flex-wrap gap-4 w-full xl:w-auto mt-4 xl:mt-0 items-center justify-start xl:justify-end">
+                            {/* Speed Control */}
+                            <div className="flex items-center gap-2 mr-4 bg-bg-secondary border border-black/10 px-3 py-1 rounded-lg">
+                                <span className="text-xs font-bold text-text-muted">SPEED</span>
+                                <select 
+                                    value={speechRate} 
+                                    onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
+                                    className="bg-transparent text-sm font-semibold text-text-primary focus:outline-none cursor-pointer"
+                                >
+                                    <option value="0.5">0.5x Slow</option>
+                                    <option value="0.75">0.75x</option>
+                                    <option value="1">1x Normal</option>
+                                    <option value="1.25">1.25x</option>
+                                    <option value="1.5">1.5x Fast</option>
+                                </select>
+                            </div>
+
                             {/* Voice Setting Toggle */}
-                            <label className="flex items-center cursor-pointer gap-2 mr-4">
+                            <label className="flex items-center cursor-pointer gap-2 mr-4 hidden md:flex">
                                 <div className="relative">
                                     <input 
                                         type="checkbox" 
@@ -338,7 +386,7 @@ const Translator = () => {
                                 <span className="w-2 h-2 rounded-full bg-accent-blue"></span>
                                 {languages.find(l => l.code === sourceLang)?.name} Speech
                             </h2>
-                            <div className="flex-1 p-6 bg-bg-secondary border border-black/10 rounded-xl overflow-y-auto whitespace-pre-wrap text-text-primary text-lg leading-relaxed shadow-inner font-sans scroll-smooth">
+                            <div className="flex-1 p-6 border border-black/10 rounded-xl overflow-y-auto whitespace-pre-wrap text-text-primary text-lg leading-relaxed shadow-inner font-sans scroll-smooth" style={{ background: '#faf5ef' }}>
                                 {transcript ? (
                                     <span>{transcript}</span>
                                 ) : (
@@ -355,7 +403,7 @@ const Translator = () => {
                                 <span className="w-2 h-2 rounded-full bg-accent-teal"></span>
                                 Translated {targetLang !== 'random' && `(${languages.find(l => l.code === targetLang)?.name})`}
                             </h2>
-                            <div className="flex-1 p-6 bg-bg-secondary border border-black/10 rounded-xl overflow-y-auto whitespace-pre-wrap text-text-primary text-lg leading-relaxed shadow-inner font-sans scroll-smooth">
+                            <div className="flex-1 p-6 border border-black/10 rounded-xl overflow-y-auto whitespace-pre-wrap text-text-primary text-lg leading-relaxed shadow-inner font-sans scroll-smooth" style={{ background: '#faf5ef' }}>
                                 {translatedText ? (
                                     <span>{translatedText}</span>
                                 ) : (
@@ -365,6 +413,52 @@ const Translator = () => {
                                 )}
                             </div>
                         </div>
+                    </div>
+
+                    {/* New Features: Save Phrase & Phrasebook */}
+                    <div className="mt-12 pt-8 border-t border-black/10">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-serif font-bold text-text-primary flex items-center gap-2">
+                                📖 Saved Phrasebook
+                            </h2>
+                            <button 
+                                onClick={savePhrase}
+                                disabled={!transcript || !translatedText}
+                                className={`px-6 py-2 rounded-lg font-bold flex items-center gap-2 transition-all shadow-sm
+                                    ${(!transcript || !translatedText) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-accent-gold text-black hover:bg-yellow-500 hover:-translate-y-0.5'}`}
+                            >
+                                <span>⭐</span> Save Current Translation
+                            </button>
+                        </div>
+
+                        {phrasebook.length === 0 ? (
+                            <div className="text-center py-10 bg-bg-primary rounded-xl border border-dashed border-black/20 text-text-muted">
+                                No phrases saved yet. Translate something and click "Save" to build your cultural phrasebook!
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {phrasebook.map((phrase) => (
+                                    <div key={phrase.id} className="bg-bg-secondary p-5 rounded-xl border border-black/10 shadow-sm relative group transition-transform hover:-translate-y-1">
+                                        <button 
+                                            onClick={() => deletePhrase(phrase.id)}
+                                            className="absolute top-3 right-3 text-text-muted hover:text-accent-terra opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            ✖
+                                        </button>
+                                        <p className="font-sans font-medium text-text-muted text-sm mb-1 line-clamp-2">{phrase.original}</p>
+                                        <p className="font-serif font-bold text-lg text-text-primary mb-3 line-clamp-3">{phrase.translated}</p>
+                                        <div className="flex items-center justify-between">
+                                            <span className="inline-block px-2 py-1 bg-accent-teal/10 text-accent-teal text-xs font-bold rounded uppercase tracking-wider">
+                                                {languages.find(l => l.code === phrase.lang)?.name || phrase.lang}
+                                            </span>
+                                            <button onClick={() => speakText(phrase.translated, languages.find(l => l.code === phrase.lang)?.ttsCode || phrase.lang)} className="text-accent-blue hover:text-blue-700 text-xs font-bold flex items-center gap-1">
+                                                🔊 Listen
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

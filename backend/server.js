@@ -90,8 +90,30 @@ async function initDb() {
             date TEXT,
             location TEXT,
             description TEXT,
+            category TEXT,
+            price INTEGER,
+            language TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS bookings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            username TEXT,
+            event_id INTEGER,
+            event_title TEXT,
+            tickets INTEGER DEFAULT 1,
+            total_price INTEGER DEFAULT 0,
+            name TEXT,
+            email TEXT,
+            phone TEXT,
+            status TEXT DEFAULT 'confirmed',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id),
+            FOREIGN KEY(event_id) REFERENCES events(id)
         )
     `);
 
@@ -326,7 +348,7 @@ app.get('/api/events', async (req, res) => {
 
 // Create Event Route
 app.post('/api/events', authenticateToken, async (req, res) => {
-    const { title, date, location, description } = req.body;
+    const { title, date, location, description, category, price, language } = req.body;
 
     if (!title || !date || !location || !description) {
         return res.status(400).json({ error: 'All fields are required' });
@@ -334,12 +356,12 @@ app.post('/api/events', authenticateToken, async (req, res) => {
 
     try {
         const result = await db.run(
-            'INSERT INTO events (user_id, username, title, date, location, description) VALUES (?, ?, ?, ?, ?, ?)',
-            [req.user.id, req.user.username, title, date, location, description]
+            'INSERT INTO events (user_id, username, title, date, location, description, category, price, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [req.user.id, req.user.username, title, date, location, description, category || 'Cultural', price || 0, language || 'English']
         );
         res.status(201).json({
             message: 'Event created successfully',
-            event: { id: result.lastID, user_id: req.user.id, username: req.user.username, title, date, location, description }
+            event: { id: result.lastID, user_id: req.user.id, username: req.user.username, title, date, location, description, category, price, language }
         });
     } catch (err) {
         console.error(err);
@@ -443,6 +465,53 @@ app.delete('/api/admin/events/:id', authenticateAdmin, async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Failed to delete event' });
+    }
+});
+
+// Book Event Route
+app.post('/api/events/:id/book', authenticateToken, async (req, res) => {
+    const eventId = req.params.id;
+    const { tickets, name, email, phone } = req.body;
+
+    if (!name || !email || !phone || !tickets) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    try {
+        const event = await db.get('SELECT * FROM events WHERE id = ?', [eventId]);
+        if (!event) return res.status(404).json({ error: 'Event not found' });
+
+        const totalPrice = (event.price || 0) * tickets;
+
+        const result = await db.run(
+            'INSERT INTO bookings (user_id, username, event_id, event_title, tickets, total_price, name, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [req.user.id, req.user.username, eventId, event.title, tickets, totalPrice, name, email, phone]
+        );
+
+        res.status(201).json({
+            message: 'Booking confirmed!',
+            booking: {
+                id: result.lastID,
+                event_title: event.title,
+                tickets,
+                total_price: totalPrice,
+                status: 'confirmed'
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Booking failed' });
+    }
+});
+
+// Get My Bookings
+app.get('/api/bookings', authenticateToken, async (req, res) => {
+    try {
+        const bookings = await db.all('SELECT * FROM bookings WHERE user_id = ? ORDER BY created_at DESC', [req.user.id]);
+        res.json(bookings);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch bookings' });
     }
 });
 
