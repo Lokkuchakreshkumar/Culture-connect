@@ -7,6 +7,7 @@ import Profile from './pages/Profile';
 import EventsBoard from './pages/EventsBoard';
 import Translator from './pages/Translator';
 import CulturalDances from './pages/CulturalDances';
+import CityFoodExplorer from './pages/CityFoodExplorer';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/events" element={<EventsBoard />} />
           <Route path="/translate" element={<Translator />} />
           <Route path="/dances" element={<CulturalDances />} />
+          <Route path="/city-food" element={<CityFoodExplorer />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

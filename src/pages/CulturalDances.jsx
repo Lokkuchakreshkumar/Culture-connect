@@ -34,7 +34,7 @@ const dancesData = [
         name: "Odissi",
         state: "Odisha",
         description: "Odissi is traditionally a dance-drama genre of performance art, where the artists and musicians play out a mythical story or a spiritual message. It is known for its tribhangi (three-part break) posture.",
-        imageUrl: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1000"
+        imageUrl: "https://images.unsplash.com/photo-1540324155974-7523202daa3f?auto=format&fit=crop&q=80&w=1000"
     },
     {
         id: 6,
@@ -76,7 +76,7 @@ const dancesData = [
         name: "Ghoomar",
         state: "Rajasthan",
         description: "Ghoomar is a traditional folk dance of Rajasthan, performed by women in flowing skirts called ghagharas. It is characterized by graceful circular movements and twirling, accompanied by traditional songs.",
-        imageUrl: "https://images.unsplash.com/photo-1623348128522-30372df5057a?auto=format&fit=crop&q=80&w=1000"
+        imageUrl: "https://images.unsplash.com/photo-1534008757030-27299c4371b6?auto=format&fit=crop&q=80&w=1000"
     },
     {
         id: 12,
